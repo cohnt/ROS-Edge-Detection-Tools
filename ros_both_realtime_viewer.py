@@ -32,8 +32,10 @@ plt.ion()
 fig = plt.figure()
 
 ax1 = fig.add_subplot(121)
+ax2 = fig.add_subplot(122)
 
 im1 = 0
+im2 = 0
 
 def image_callback(msg):
     global first, im1, im2
@@ -49,11 +51,14 @@ def image_callback(msg):
         edges = cv2.Canny(img,100,200)
 
         if first:
-            im1 = ax1.imshow(edges, cmap='gray')
+            im1 = ax1.imshow(img, cmap='gray')
+            im2 = ax2.imshow(edges, cmap='gray')
             first = False
         else:
-            im1.set_data(edges)
+            im1.set_data(img)
+            im2.set_data(edges)
 
+        cv2.imwrite('camera_image.jpeg', img)
         cv2.imwrite('camera_edges.jpeg', edges)
 
         # ax1.relim()
