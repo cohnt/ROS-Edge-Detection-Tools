@@ -31,7 +31,7 @@ plt.ion()
 
 fig = plt.figure()
 
-ax1 = fig.add_subplot(121)
+ax1 = fig.add_subplot(111)
 
 im1 = 0
 
