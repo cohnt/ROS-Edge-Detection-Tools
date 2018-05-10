@@ -65,8 +65,8 @@ def image_callback(msg):
             im1.set_data(img)
             im2.set_data(edges)
 
-        # cv2.imwrite('camera_image.jpeg', img)
-        # cv2.imwrite('camera_edges.jpeg', edges)
+        cv2.imwrite('camera_image.jpeg', img)
+        cv2.imwrite('camera_edges.jpeg', edges)
 
         # ax1.relim()
         # ax1.autoscale_view(True,True,True)
@@ -133,8 +133,8 @@ def depth_callback(msg):
             im3.set_data(img)
             im4.set_data(edges)
 
-        # cv2.imwrite('camera_image.jpeg', img)
-        # cv2.imwrite('camera_edges.jpeg', edges)
+        cv2.imwrite('depth_image.jpeg', img)
+        cv2.imwrite('depth_edges.jpeg', edges)
 
         # ax1.relim()
         # ax1.autoscale_view(True,True,True)
