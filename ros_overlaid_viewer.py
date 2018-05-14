@@ -54,8 +54,8 @@ def update_overlaid():
     mask1 = im2 > 127
     mask2 = im4 > 127
     img[np.logical_and(mask1, mask2)] = (255, 0, 255)
-    img[np.logical_and(mask1, np.logical_not(mask2))] = (255, 0, 0)
-    img[np.logical_and(np.logical_not(mask1), mask2)] = (0, 0, 255)
+    img[np.logical_and(mask1, np.logical_not(mask2))] = (0, 0, 255)
+    img[np.logical_and(np.logical_not(mask1), mask2)] = (255, 0, 0)
     img[np.logical_and(np.logical_not(mask1), np.logical_not(mask2))] = (0, 0, 0)
 
     if firstO:
