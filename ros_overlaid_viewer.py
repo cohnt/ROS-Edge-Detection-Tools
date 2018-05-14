@@ -41,6 +41,8 @@ im3 = 0
 im4 = 0
 im5 = 0
 
+img = 0
+
 np.set_printoptions(threshold='nan')
 
 def update_overlaid():
@@ -49,8 +51,9 @@ def update_overlaid():
 
     if firstIm or firstD:
         return
+    if firstO:
+        img = im1
 
-    img = im1
     mask1 = im2 > 127
     mask2 = im4 > 127
     img[np.logical_and(mask1, mask2)] = (255, 0, 255)
