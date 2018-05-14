@@ -42,11 +42,36 @@ im2 = 0
 im3 = 0
 im4 = 0
 
+img1 = 0
+img2 = 0
+img4 = 0
+
 np.set_printoptions(threshold='nan')
 
+def update_overlaid():
+    global firstIm, firstD, im2, im4, img2, img4
+
+    if firstIm or firstD:
+        return
+
+    print("Updating overlaid edges image")
+
+    im5 = img1
+    mask1 = img2 > 127
+    mask2 = img4 > 127
+    im5[np.logical_and(mask1, mask2)] = (255, 0, 255)
+    im5[np.logical_and(mask1, np.logical_not(mask2))] = (255, 0, 0)
+    # im5[mask1 and not mask2] = (255, 0, 0)
+    im5[np.logical_and(np.logical_not(mask1), mask2)] = (0, 0, 255)
+    # im5[not mask1 and mask2] = (0, 0, 255)
+    im5[np.logical_and(np.logical_not(mask1), np.logical_not(mask2))] = (0, 0, 0)
+    # im5[not mask1 and not mask2] = (0, 0, 0)
+
+    cv2.imwrite('overlay_test.png', im5)
+
 def image_callback(msg):
-    global firstIm, im1, im2
-    print("Received an image!")
+    global firstIm, im1, im2, img1, img2
+    print("Received an RGB image!")
     try:
         # Convert your ROS Image message to OpenCV2
         img = bridge.imgmsg_to_cv2(msg, "bgr8")
@@ -61,12 +86,17 @@ def image_callback(msg):
             im1 = ax1.imshow(img, cmap='gray')
             im2 = ax2.imshow(edges, cmap='gray')
             firstIm = False
+            img1 = img
         else:
             im1.set_data(img)
             im2.set_data(edges)
 
+        img2 = edges
+
         cv2.imwrite('camera_image.jpeg', img)
         cv2.imwrite('camera_edges.jpeg', edges)
+
+        update_overlaid()
 
         # ax1.relim()
         # ax1.autoscale_view(True,True,True)
@@ -92,8 +122,8 @@ def image_callback(msg):
 #     return img
 
 def depth_callback(msg):
-    global firstD, im3, im4
-    print("Received an image!")
+    global firstD, im3, im4, img4
+    print("Received a depth image!")
     try:
         # Convert your ROS Image message to OpenCV2
         raw_img = bridge.imgmsg_to_cv2(msg, "16UC1")
@@ -133,8 +163,12 @@ def depth_callback(msg):
             im3.set_data(img)
             im4.set_data(edges)
 
+        img4 = edges
+
         cv2.imwrite('depth_image.jpeg', img)
         cv2.imwrite('depth_edges.jpeg', edges)
+
+        update_overlaid()
 
         # ax1.relim()
         # ax1.autoscale_view(True,True,True)
