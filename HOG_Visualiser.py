@@ -8,10 +8,11 @@ from skimage import data, exposure, io
 from skimage.io import imread
 
 fname = "camera_image.jpeg"
+cell_size = (16, 16)
 
 image = imread(fname)
 
-fd, hog_image = hog(rgb2gray(image), orientations=8, pixels_per_cell=(8, 8), cells_per_block=(1, 1), visualise=True)
+fd, hog_image = hog(rgb2gray(image), orientations=8, pixels_per_cell=cell_size, cells_per_block=(1, 1), visualise=True)
 
 fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(8, 4), sharex=True, sharey=True)
 
