@@ -16,6 +16,9 @@ fname = "camera_image.jpeg"
 cell_size = (8, 8)
 window_size = (18, 12)
 
+fig, ax = plt.subplots()
+ax.axis('off')
+
 class WindowIndicator(object):
 	def __init__(self, ax):
 		self.ax = ax
@@ -54,13 +57,12 @@ def main():
 	image = imread(fname)
 	fd, hog_image = hog(rgb2gray(image), orientations=8, pixels_per_cell=cell_size, cells_per_block=(1, 1), visualise=True, feature_vector=False, block_norm='L2')
 	hog_image_rescaled = exposure.rescale_intensity(hog_image, in_range=(0, 10))
-	fig, ax = plt.subplots()
 
-	ax.axis('off')
 	ax.imshow(hog_image_rescaled, cmap=plt.cm.gray)
 
 	cursor = WindowIndicator(ax)
 	cid =  plt.connect('motion_notify_event', cursor.mouse_move)
+	cid = fig.canvas.mpl_connect('button_press_event', onclick)
 
 	mng = plt.get_current_fig_manager()
 	mng.resize(*mng.window.maxsize())
