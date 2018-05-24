@@ -53,6 +53,11 @@ def onclick(event):
 	else:
 		print("Outside of figure!")
 
+def onkeypress(event):
+	# print event.key
+	if event.key == "enter":
+		print "Next image!"
+
 def main():
 	image = imread(fname)
 	fd, hog_image = hog(rgb2gray(image), orientations=8, pixels_per_cell=cell_size, cells_per_block=(1, 1), visualise=True, feature_vector=False, block_norm='L2')
@@ -63,6 +68,7 @@ def main():
 	cursor = WindowIndicator(ax)
 	cid =  plt.connect('motion_notify_event', cursor.mouse_move)
 	cid = fig.canvas.mpl_connect('button_press_event', onclick)
+	cid = fig.canvas.mpl_connect('key_press_event', onkeypress)
 
 	mng = plt.get_current_fig_manager()
 	mng.resize(*mng.window.maxsize())
