@@ -52,8 +52,16 @@ class WindowIndicator(object):
 def classify(cell_id):
 	global fd, svc
 
+	temp = fd[cell_id[0]:cell_id[0]+window_size[1],cell_id[1]:cell_id[1]+window_size[0],:,:,:]
+	print np.shape(temp)
+	temp = np.reshape(temp, (-1))
+	temp = np.reshape(temp, (1, -1))
+
+	print "Predicted:"
+	print svc.predict(temp)
+
 def onclick(event):
-	global fd, isHandleData, notHandleData, svc, cell_size, window_size
+	global fd, isHandleData, notHandleData, svc, cell_size, window_size, learned
 	if ax.in_axes(event):
 		# Transform the event from display to axes coordinates
 		ax_pos = ax.transAxes.inverted().transform((event.x, event.y))
@@ -67,19 +75,19 @@ def onclick(event):
 		cell_id = cell_id.astype(int)
 		print(cell_id)
 		if event.button == 1:
-			print "NOT HANDLE"
 			if learned:
 				classify(cell_id)
 			else:
+				print "NOT HANDLE"
 				if np.shape(notHandleData) == ():
 					notHandleData = [fd[cell_id[0]:cell_id[0]+window_size[1],cell_id[1]:cell_id[1]+window_size[0],:,:,:]]
 				else:
 					notHandleData = np.append(notHandleData, [fd[cell_id[0]:cell_id[0]+window_size[1],cell_id[1]:cell_id[1]+window_size[0],:,:,:]], axis=0)
 		elif event.button == 3:
-			print "HANDLE"
 			if learned:
 				classify(cell_id)
 			else:
+				print "HANDLE"
 				if np.shape(isHandleData) == ():
 					isHandleData = [fd[cell_id[0]:cell_id[0]+window_size[1],cell_id[1]:cell_id[1]+window_size[0],:,:,:]]
 				else:
@@ -90,16 +98,21 @@ def onclick(event):
 def learn():
 	global isHandleData, notHandleData, svc
 	svc = LinearSVC(random_state=0)
-	positives = np.reshape(isHandleData, (np.shape(isHandleData)[0], window_size[0], window_size[1], np.shape(isHandleData)[5]))
-	positives = np.reshape(positives, (np.shape(positives)[0], -1))
-	negatives = np.reshape(notHandleData, (np.shape(notHandleData)[0], window_size[0], window_size[1], np.shape(notHandleData)[5]))
-	negatives = np.reshape(negatives, (np.shape(negatives)[0], -1))
+	positives = np.reshape(isHandleData, (np.shape(isHandleData)[0], -1))
+	negatives = np.reshape(notHandleData, (np.shape(notHandleData)[0], -1))
 
-	print np.shape(positives)
-	print np.shape(negatives)
+	positivesBool = np.ones(np.shape(positives)[0])
+	negativesBool = np.zeros(np.shape(negatives)[0])
+
+	X = np.concatenate((positives, negatives))
+	y = np.concatenate((positivesBool, negativesBool))
+
+	svc.fit(X, y)
+
+	print "Done learning!"
 
 def onkeypress(event):
-	global isHandleData, notHandleData, svc
+	global isHandleData, notHandleData, svc, learned
 	# print event.key
 	if event.key == "enter":
 		print "Next image!"
