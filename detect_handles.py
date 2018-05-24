@@ -8,6 +8,9 @@ from skimage.color import rgb2gray
 from skimage import data, exposure, io
 from skimage.io import imread
 
+from sklearn.svm import LinearSVC
+from sklearn.datasets import make_classification
+
 import numpy as np
 
 # np.set_printoptions(threshold='nan')
@@ -23,6 +26,9 @@ isHandleData = 0
 notHandleData = 0
 
 fd = 0
+
+svc = 0
+learned = False
 
 class WindowIndicator(object):
 	def __init__(self, ax):
@@ -43,8 +49,11 @@ class WindowIndicator(object):
 		self.hl2.set_ydata(y+(cell_size[1]*window_size[1])-(y % cell_size[1])-1)
 		self.ax.figure.canvas.draw_idle()
 
+def classify(cell_id):
+	global fd, svc
+
 def onclick(event):
-	global fd, isHandleData, notHandleData
+	global fd, isHandleData, notHandleData, svc, cell_size, window_size
 	if ax.in_axes(event):
 		# Transform the event from display to axes coordinates
 		ax_pos = ax.transAxes.inverted().transform((event.x, event.y))
@@ -52,37 +61,54 @@ def onclick(event):
 		exact_pos[1] = 480 - exact_pos[1]
 		exact_pos = exact_pos - (0.5, 0.5)
 		print(exact_pos)
-		cell_id = exact_pos
-		cell_id[0] = np.floor(cell_id[0] / cell_size[0])
-		cell_id[1] = np.floor(cell_id[1] / cell_size[1])
+		cell_id = np.copy(exact_pos)
+		cell_id[0] = np.floor(exact_pos[1] / cell_size[1])
+		cell_id[1] = np.floor(exact_pos[0] / cell_size[0])
 		cell_id = cell_id.astype(int)
 		print(cell_id)
 		if event.button == 1:
 			print "NOT HANDLE"
-			if np.shape(notHandleData) == ():
-				notHandleData = [fd[cell_id[0]:cell_id[0]+window_size[0],cell_id[1]:cell_id[1]+window_size[1],:,:,:]]
+			if learned:
+				classify(cell_id)
 			else:
-				notHandleData = np.append(notHandleData, [fd[cell_id[0]:cell_id[0]+window_size[0],cell_id[1]:cell_id[1]+window_size[1],:,:,:]], axis=0)
+				if np.shape(notHandleData) == ():
+					notHandleData = [fd[cell_id[0]:cell_id[0]+window_size[1],cell_id[1]:cell_id[1]+window_size[0],:,:,:]]
+				else:
+					notHandleData = np.append(notHandleData, [fd[cell_id[0]:cell_id[0]+window_size[1],cell_id[1]:cell_id[1]+window_size[0],:,:,:]], axis=0)
 		elif event.button == 3:
 			print "HANDLE"
-			if np.shape(isHandleData) == ():
-				isHandleData = [fd[cell_id[0]:cell_id[0]+window_size[0],cell_id[1]:cell_id[1]+window_size[1],:,:,:]]
+			if learned:
+				classify(cell_id)
 			else:
-				isHandleData = np.append(isHandleData, [fd[cell_id[0]:cell_id[0]+window_size[0],cell_id[1]:cell_id[1]+window_size[1],:,:,:]], axis=0)
+				if np.shape(isHandleData) == ():
+					isHandleData = [fd[cell_id[0]:cell_id[0]+window_size[1],cell_id[1]:cell_id[1]+window_size[0],:,:,:]]
+				else:
+					isHandleData = np.append(isHandleData, [fd[cell_id[0]:cell_id[0]+window_size[1],cell_id[1]:cell_id[1]+window_size[0],:,:,:]], axis=0)
 	else:
 		print("Outside of figure!")
 
+def learn():
+	global isHandleData, notHandleData, svc
+	svc = LinearSVC(random_state=0)
+	positives = np.reshape(isHandleData, (np.shape(isHandleData)[0], window_size[0], window_size[1], np.shape(isHandleData)[5]))
+	positives = np.reshape(positives, (np.shape(positives)[0], -1))
+	negatives = np.reshape(notHandleData, (np.shape(notHandleData)[0], window_size[0], window_size[1], np.shape(notHandleData)[5]))
+	negatives = np.reshape(negatives, (np.shape(negatives)[0], -1))
+
 def onkeypress(event):
-	global isHandleData, notHandleData
+	global isHandleData, notHandleData, svc
 	# print event.key
 	if event.key == "enter":
 		print "Next image!"
-	elif event.key == "h":
-		print isHandleData
+	elif event.key == "h": # Print handles
+		# print isHandleData
 		print "Positive examples: %s" % np.shape(isHandleData)[0]
-	elif event.key == "n":
-		print notHandleData
+	elif event.key == "n": # Print negatives
+		# print notHandleData
 		print "Negative examples: %s" % np.shape(notHandleData)[0]
+	elif event.key == "l": # Learn
+		learned = True
+		learn()
 
 def main():
 	global fd
