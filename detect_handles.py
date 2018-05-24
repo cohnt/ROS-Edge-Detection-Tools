@@ -114,9 +114,7 @@ def learn():
 def onkeypress(event):
 	global isHandleData, notHandleData, svc, learned
 	# print event.key
-	if event.key == "enter":
-		print "Next image!"
-	elif event.key == "h": # Print handles
+	if event.key == "h": # Print handles
 		# print isHandleData
 		print "Positive examples: %s" % np.shape(isHandleData)[0]
 	elif event.key == "n": # Print negatives
