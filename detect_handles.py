@@ -66,9 +66,9 @@ def main():
 	ax.imshow(hog_image_rescaled, cmap=plt.cm.gray)
 
 	cursor = WindowIndicator(ax)
-	cid =  plt.connect('motion_notify_event', cursor.mouse_move)
-	cid = fig.canvas.mpl_connect('button_press_event', onclick)
-	cid = fig.canvas.mpl_connect('key_press_event', onkeypress)
+	cid1 = plt.connect('motion_notify_event', cursor.mouse_move)
+	cid2 = plt.connect('button_press_event', onclick)
+	cid3 = plt.connect('key_press_event', onkeypress)
 
 	mng = plt.get_current_fig_manager()
 	mng.resize(*mng.window.maxsize())
