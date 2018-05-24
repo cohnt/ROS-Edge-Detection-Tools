@@ -95,6 +95,9 @@ def learn():
 	negatives = np.reshape(notHandleData, (np.shape(notHandleData)[0], window_size[0], window_size[1], np.shape(notHandleData)[5]))
 	negatives = np.reshape(negatives, (np.shape(negatives)[0], -1))
 
+	print np.shape(positives)
+	print np.shape(negatives)
+
 def onkeypress(event):
 	global isHandleData, notHandleData, svc
 	# print event.key
@@ -125,6 +128,8 @@ def main():
 
 	mng = plt.get_current_fig_manager()
 	mng.resize(*mng.window.maxsize())
+
+	plt.rcParams["keymap.yscale"] = ""
 
 	plt.show()
 
