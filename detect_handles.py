@@ -2,6 +2,7 @@
 
 import matplotlib.pyplot as plt
 import matplotlib.widgets as widgets
+import matplotlib.patches as patches
 
 from skimage.feature import hog
 from skimage.color import rgb2gray
@@ -17,8 +18,8 @@ import numpy as np
 
 fname = "camera_image0.jpeg"
 imNum = 0
-cell_size = (8, 8)
-window_size = (16, 16)
+cell_size = (8, 8) # x, y
+window_size = (16, 16) # x, y
 
 fig, ax = plt.subplots()
 ax.axis('off')
@@ -32,6 +33,7 @@ fd = 0
 
 svc = 0
 learned = False
+imageMode = False
 
 class WindowIndicator(object):
 	def __init__(self, ax):
@@ -52,7 +54,7 @@ class WindowIndicator(object):
 		self.hl2.set_ydata(y+(cell_size[1]*window_size[1])-(y % cell_size[1])-1)
 		self.ax.figure.canvas.draw_idle()
 
-def classify(cell_id):
+def clickClassify(cell_id):
 	global fd, svc
 
 	temp = fd[cell_id[0]:cell_id[0]+window_size[1],cell_id[1]:cell_id[1]+window_size[0],:,:,:]
@@ -77,24 +79,20 @@ def onclick(event):
 		cell_id[1] = np.floor(exact_pos[0] / cell_size[0])
 		cell_id = cell_id.astype(int)
 		print(cell_id)
+		if learned:
+			clickClassify(cell_id)
 		if event.button == 1:
-			if learned:
-				classify(cell_id)
+			print "NOT HANDLE"
+			if np.shape(notHandleData) == ():
+				notHandleData = [fd[cell_id[0]:cell_id[0]+window_size[1],cell_id[1]:cell_id[1]+window_size[0],:,:,:]]
 			else:
-				print "NOT HANDLE"
-				if np.shape(notHandleData) == ():
-					notHandleData = [fd[cell_id[0]:cell_id[0]+window_size[1],cell_id[1]:cell_id[1]+window_size[0],:,:,:]]
-				else:
-					notHandleData = np.append(notHandleData, [fd[cell_id[0]:cell_id[0]+window_size[1],cell_id[1]:cell_id[1]+window_size[0],:,:,:]], axis=0)
+				notHandleData = np.append(notHandleData, [fd[cell_id[0]:cell_id[0]+window_size[1],cell_id[1]:cell_id[1]+window_size[0],:,:,:]], axis=0)
 		elif event.button == 3:
-			if learned:
-				classify(cell_id)
+			print "HANDLE"
+			if np.shape(isHandleData) == ():
+				isHandleData = [fd[cell_id[0]:cell_id[0]+window_size[1],cell_id[1]:cell_id[1]+window_size[0],:,:,:]]
 			else:
-				print "HANDLE"
-				if np.shape(isHandleData) == ():
-					isHandleData = [fd[cell_id[0]:cell_id[0]+window_size[1],cell_id[1]:cell_id[1]+window_size[0],:,:,:]]
-				else:
-					isHandleData = np.append(isHandleData, [fd[cell_id[0]:cell_id[0]+window_size[1],cell_id[1]:cell_id[1]+window_size[0],:,:,:]], axis=0)
+				isHandleData = np.append(isHandleData, [fd[cell_id[0]:cell_id[0]+window_size[1],cell_id[1]:cell_id[1]+window_size[0],:,:,:]], axis=0)
 	else:
 		print("Outside of figure!")
 
@@ -115,11 +113,13 @@ def learn():
 	print "Done learning!"
 
 def onkeypress(event):
-	global isHandleData, notHandleData, svc, learned, imNum
+	global isHandleData, notHandleData, svc, learned, imNum, imageMode
 	# print event.key
 	if event.key == "enter":
 		imNum = imNum + 1
 		loadImage()
+		if learned:
+			predictImage()
 	elif event.key == "h": # Print handles
 		# print isHandleData
 		print "Positive examples: %s" % np.shape(isHandleData)[0]
@@ -129,9 +129,16 @@ def onkeypress(event):
 	elif event.key == "l": # Learn
 		learned = True
 		learn()
+	elif event.key == "r": # Restart at first image
+		imNum = 0
+		loadImage()
+		if learned:
+			predictImage()
+	elif event.key == "i": # Switch mode from HOG to image
+		imageMode = not imageMode
 
 def loadImage():
-	global fd, fname, imNum, fig, ax, imgObj, firstImage
+	global fd, fname, imNum, fig, ax, imgObj, firstImage, imageMode
 	print "Loading camera_image%s.jpeg" % imNum
 	fname = "camera_image%s.jpeg" % imNum
 	try:
@@ -139,6 +146,7 @@ def loadImage():
 		print "Done!"
 	except:
 		print "No more images!"
+		imNum = 0
 	else:
 		fd, hog_image = hog(rgb2gray(image), orientations=8, pixels_per_cell=cell_size, cells_per_block=(1, 1), visualise=True, feature_vector=False, block_norm='L2')
 		hog_image_rescaled = exposure.rescale_intensity(hog_image, in_range=(0, 10))
@@ -146,8 +154,43 @@ def loadImage():
 		if firstImage:
 			firstImage = False
 			imgObj = ax.imshow(hog_image_rescaled, cmap=plt.cm.gray)
-		else:
+		elif not imageMode:
 			imgObj.set_data(hog_image_rescaled)
+		else:
+			imgObj.set_data(image)
+
+def classify(cell_id):
+	global fd, svc
+
+	temp = fd[cell_id[0]:cell_id[0]+window_size[1],cell_id[1]:cell_id[1]+window_size[0],:,:,:]
+	# print np.shape(temp)
+	temp = np.reshape(temp, (-1))
+	temp = np.reshape(temp, (1, -1))
+
+	return svc.predict(temp)
+
+def predictImage():
+	global fd, svc, ax
+
+	[p.remove() for p in reversed(ax.patches)]
+
+	for i in range(0, np.shape(fd)[0]-window_size[1]):
+		for j in range(0, np.shape(fd)[1]-window_size[0]):
+			cell_id = (i, j)
+			print cell_id,
+			if classify(cell_id):
+				print "Yes!"
+				ax.add_patch(
+					patches.Rectangle(
+						(j*cell_size[0], i*cell_size[1]),
+						window_size[0]*cell_size[0],
+						window_size[1]*cell_size[1],
+						fill=False,
+						edgecolor="blue"
+					)
+				)
+			else:
+				print ""
 
 def main():
 	loadImage()
