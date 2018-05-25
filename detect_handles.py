@@ -36,7 +36,8 @@ svc = 0
 learned = False
 imageMode = False
 
-clusterMaxDistance = 5
+clusterMaxDistance = 3
+clusterMinSamples = 3
 
 db = 0
 
@@ -234,7 +235,7 @@ def main():
 	global db
 	loadImage()
 
-	db = DBSCAN(eps=clusterMaxDistance, n_jobs=-1, min_samples=3)
+	db = DBSCAN(eps=clusterMaxDistance, n_jobs=-1, min_samples=clusterMinSamples)
 
 	cursor = WindowIndicator(ax)
 	cid1 = plt.connect('motion_notify_event', cursor.mouse_move)
