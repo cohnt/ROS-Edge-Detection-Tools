@@ -22,6 +22,7 @@ bridge = CvBridge()
 
 imNum = 0
 maxImNum = 100
+saveRate = 10
 
 def image_callback(msg):
     global imNum, maxImNum
@@ -33,8 +34,10 @@ def image_callback(msg):
         print(e)
     else:
         # Save your OpenCV2 image as a jpeg 
-        cv2.imwrite('camera_image%s.jpeg' % imNum, cv2_img)
-        if imNum < maxImNum:
+        if imNum % saveRate == 0:
+            cv2.imwrite('camera_image%s.jpeg' % (imNum / saveRate), cv2_img)
+            print "Saved!"
+        if imNum < maxImNum * saveRate:
             imNum = imNum + 1
         else:
             imNum = 0
