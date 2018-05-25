@@ -15,12 +15,15 @@ import numpy as np
 
 # np.set_printoptions(threshold='nan')
 
-fname = "camera_image.jpeg"
+fname = "camera_image0.jpeg"
+imNum = 0
 cell_size = (8, 8)
 window_size = (18, 12)
 
 fig, ax = plt.subplots()
 ax.axis('off')
+imgObj = 0
+firstImage = True
 
 isHandleData = 0
 notHandleData = 0
@@ -112,9 +115,12 @@ def learn():
 	print "Done learning!"
 
 def onkeypress(event):
-	global isHandleData, notHandleData, svc, learned
+	global isHandleData, notHandleData, svc, learned, imNum
 	# print event.key
-	if event.key == "h": # Print handles
+	if event.key == "enter":
+		imNum = imNum + 1
+		loadImage()
+	elif event.key == "h": # Print handles
 		# print isHandleData
 		print "Positive examples: %s" % np.shape(isHandleData)[0]
 	elif event.key == "n": # Print negatives
@@ -124,13 +130,27 @@ def onkeypress(event):
 		learned = True
 		learn()
 
-def main():
-	global fd
-	image = imread(fname)
-	fd, hog_image = hog(rgb2gray(image), orientations=8, pixels_per_cell=cell_size, cells_per_block=(1, 1), visualise=True, feature_vector=False, block_norm='L2')
-	hog_image_rescaled = exposure.rescale_intensity(hog_image, in_range=(0, 10))
+def loadImage():
+	global fd, fname, imNum, fig, ax, imgObj, firstImage
+	print "Loading camera_image%s.jpeg" % imNum
+	fname = "camera_image%s.jpeg" % imNum
+	try:
+		image = imread(fname)
+		print "Done!"
+	except:
+		print "No more images!"
+	else:
+		fd, hog_image = hog(rgb2gray(image), orientations=8, pixels_per_cell=cell_size, cells_per_block=(1, 1), visualise=True, feature_vector=False, block_norm='L2')
+		hog_image_rescaled = exposure.rescale_intensity(hog_image, in_range=(0, 10))
 
-	ax.imshow(hog_image_rescaled, cmap=plt.cm.gray)
+		if firstImage:
+			firstImage = False
+			imgObj = ax.imshow(hog_image_rescaled, cmap=plt.cm.gray)
+		else:
+			imgObj.set_data(hog_image_rescaled)
+
+def main():
+	loadImage()
 
 	cursor = WindowIndicator(ax)
 	cid1 = plt.connect('motion_notify_event', cursor.mouse_move)

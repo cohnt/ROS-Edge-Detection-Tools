@@ -20,7 +20,11 @@ import cv2
 # Instantiate CvBridge
 bridge = CvBridge()
 
+imNum = 0
+maxImNum = 100
+
 def image_callback(msg):
+    global imNum, maxImNum
     print("Received an image!")
     try:
         # Convert your ROS Image message to OpenCV2
@@ -29,7 +33,11 @@ def image_callback(msg):
         print(e)
     else:
         # Save your OpenCV2 image as a jpeg 
-        cv2.imwrite('camera_image.jpeg', cv2_img)
+        cv2.imwrite('camera_image%s.jpeg' % imNum, cv2_img)
+        if imNum < maxImNum:
+            imNum = imNum + 1
+        else:
+            imNum = 0
 
 def main():
     rospy.init_node('image_listener')
