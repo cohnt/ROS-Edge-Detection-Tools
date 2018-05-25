@@ -21,7 +21,7 @@ import cv2
 bridge = CvBridge()
 
 imNum = 0
-maxImNum = 100
+maxImNum = float("inf")
 saveRate = 10
 
 def image_callback(msg):
@@ -52,4 +52,8 @@ def main():
     rospy.spin()
 
 if __name__ == '__main__':
-    main()
+    global imNum, saveRate
+    try:
+        main()
+    except KeyboardInterrupt:
+        print "Recorded %s images" % (imNum / saveRate)

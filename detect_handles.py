@@ -18,7 +18,7 @@ import numpy as np
 fname = "camera_image0.jpeg"
 imNum = 0
 cell_size = (8, 8)
-window_size = (18, 12)
+window_size = (16, 16)
 
 fig, ax = plt.subplots()
 ax.axis('off')
