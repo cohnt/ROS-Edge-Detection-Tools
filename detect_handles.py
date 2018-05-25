@@ -11,6 +11,7 @@ from skimage.io import imread
 
 from sklearn.svm import LinearSVC
 from sklearn.datasets import make_classification
+from sklearn.cluster import DBSCAN
 
 import numpy as np
 
@@ -34,6 +35,10 @@ fd = 0
 svc = 0
 learned = False
 imageMode = False
+
+clusterMaxDistance = 5
+
+db = 0
 
 class WindowIndicator(object):
 	def __init__(self, ax):
@@ -170,9 +175,11 @@ def classify(cell_id):
 	return svc.predict(temp)
 
 def predictImage():
-	global fd, svc, ax
+	global fd, svc, ax, db, window_size, cell_size
 
 	[p.remove() for p in reversed(ax.patches)]
+
+	guesses = []
 
 	for i in range(0, np.shape(fd)[0]-window_size[1]):
 		for j in range(0, np.shape(fd)[1]-window_size[0]):
@@ -180,20 +187,54 @@ def predictImage():
 			print cell_id,
 			if classify(cell_id):
 				print "Yes!"
+				guesses.append(cell_id)
 				ax.add_patch(
 					patches.Rectangle(
-						(j*cell_size[0], i*cell_size[1]),
-						window_size[0]*cell_size[0],
-						window_size[1]*cell_size[1],
+						(j*cell_size[0]+(0.5*(window_size[0]*cell_size[0])), i*cell_size[1]+(0.5*(window_size[1]*cell_size[1]))),
+						2,
+						2,
 						fill=False,
 						edgecolor="blue"
 					)
 				)
 			else:
 				print ""
+	guesses = np.array(guesses)
+	db.fit(guesses)
+	labels = db.labels_
+	unique_labels = set(labels)
+	print(db.labels_)
+	numLabels = len(unique_labels)
+	print "Found %s clusters" % numLabels
+	for k in unique_labels:
+		if k == -1:
+			continue
+		# print labels
+		# print k
+		class_member_mask = (labels == k)
+		# print class_member_mask
+		# print np.shape(class_member_mask)
+		# print guesses
+		# print np.shape(guesses)
+		xy = np.matrix(guesses[class_member_mask])
+		print(xy)
+		centroid = np.mean(xy, axis=0)
+		print(centroid)
+		ax.add_patch(
+			patches.Rectangle(
+				(centroid[0, 1]*cell_size[0], centroid[0, 0]*cell_size[1]),
+				window_size[0]*cell_size[0],
+				window_size[1]*cell_size[1],
+				fill=False,
+				edgecolor="blue"
+			)
+		)
 
 def main():
+	global db
 	loadImage()
+
+	db = DBSCAN(eps=clusterMaxDistance, n_jobs=-1, min_samples=3)
 
 	cursor = WindowIndicator(ax)
 	cid1 = plt.connect('motion_notify_event', cursor.mouse_move)
