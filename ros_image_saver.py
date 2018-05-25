@@ -50,10 +50,8 @@ def main():
     rospy.Subscriber(image_topic, Image, image_callback)
     # Spin until ctrl + c
     rospy.spin()
+    print "Recorded %s images" % (imNum / saveRate)
 
 if __name__ == '__main__':
     global imNum, saveRate
-    try:
-        main()
-    except KeyboardInterrupt:
-        print "Recorded %s images" % (imNum / saveRate)
+    main()
