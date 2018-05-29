@@ -162,7 +162,8 @@ def learn():
 
 def onkeypress(event):
 	global isHandleData, notHandleData, svc, learned, imNum, imageMode
-	# print event.key
+	print "Key pressed: ",
+	print event.key
 	if event.key == "h": # Print handles
 		# print isHandleData
 		print "Positive examples: %s" % np.shape(isHandleData)[0]
@@ -266,6 +267,7 @@ def main():
 	rospy.Subscriber(image_topic, Image, image_callback)
 
 	while not rospy.is_shutdown():
+		plt.pause(0.1)
 		try:
 			if ready:
 				fig.canvas.draw()
