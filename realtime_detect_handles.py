@@ -52,7 +52,7 @@ db = 0
 bridge = CvBridge()
 
 def image_callback(msg):
-	global firstImage, im1, im2, new_img, imgObj, ready
+	global firstImage, im1, im2, new_img, imgObj, ready, fd, hog_image, hog_image_rescaled
 	print "Received an image."
 	try:
 		# Convert your ROS Image message to OpenCV2
@@ -201,9 +201,9 @@ def predictImage():
 	for i in range(0, np.shape(fd)[0]-window_size[1]):
 		for j in range(0, np.shape(fd)[1]-window_size[0]):
 			cell_id = (i, j)
-			print cell_id,
+			# print cell_id,
 			if classify(cell_id):
-				print "Yes!"
+				# print "Yes!"
 				guesses.append(cell_id)
 				ax.add_patch(
 					patches.Rectangle(
@@ -214,8 +214,8 @@ def predictImage():
 						edgecolor="blue"
 					)
 				)
-			else:
-				print ""
+			# else:
+				# print ""
 	guesses = np.array(guesses)
 	db.fit(guesses)
 	labels = db.labels_
