@@ -50,32 +50,54 @@ db = 0
 
 bridge = CvBridge()
 
+lastmsg = 0
+newmsg = False
+
 def image_callback(msg):
-	global im1, im2, new_img, imgObj, ready, fd, hog_image, hog_image_rescaled
+	global lastmsg, newmsg
 	print "Received an image."
+	lastmsg = msg
+	newmsg = True
+
+def process_image():
+	# myTime = rospy.get_time()
+	# yourTime = msg.header.stamp.to_sec()
+	# print "Current time: %s" % myTime
+	# print "Message time: %s" % yourTime
+	# print "Elapsed: %s" % (myTime-yourTime)
+
+	global lastmsg, im1, im2, new_img, imgObj, ready, fd, hog_image, hog_image_rescaled
+	print "Processing an image"
+	msg = lastmsg
 	try:
 		# Convert your ROS Image message to OpenCV2
-		print "Converting...",
+		# print "Converting...",
 		img = bridge.imgmsg_to_cv2(msg, "bgr8")
-		print "Done!"
+		# print "Done!"
 	except CvBridgeError, e:
 		print(e)
 	else:
-		print "Processing... ",
+		# print "Processing... ",
 		startTime = time.time()
 		fd, hog_image = hog(rgb2gray(img), orientations=8, pixels_per_cell=cell_size, cells_per_block=(1, 1), visualise=True, feature_vector=False, block_norm='L2')
 		hog_image_rescaled = exposure.rescale_intensity(hog_image, in_range=(0, 10))
 		endTime = time.time()
-		print "Done!"
+		# print "Done! ",
 
-		print "Time: %s" % (endTime-startTime)
+		# print "Time: %s" % (endTime-startTime)
 
+		# print "Updating display... ",
+		startTime = time.time()
 		if imgObj == 0:
 			imgObj = ax.imshow(hog_image_rescaled, cmap=plt.cm.gray)
 		elif not imageMode:
 			imgObj.set_data(hog_image_rescaled)
 		else:
 			imgObj.set_data(img)
+		endTime = time.time();
+		# print "Done! ",
+		# print "Time: %s" % (endTime-startTime)
+
 		if learned:
 			predictImage()
 
@@ -246,7 +268,7 @@ def predictImage():
 		)
 
 def main():
-	global db, ready
+	global db, ready, newmsg
 
 	db = DBSCAN(eps=clusterMaxDistance, n_jobs=-1, min_samples=clusterMinSamples)
 
@@ -262,14 +284,16 @@ def main():
 
 	rospy.init_node('image_listener')
 	image_topic = "/head_camera/rgb/image_raw"
-	rospy.Subscriber(image_topic, Image, image_callback, queue_size=1)
+	rospy.Subscriber(image_topic, Image, image_callback)
 
 	while not rospy.is_shutdown():
-		plt.pause(0.1)
+		plt.pause(0.001)
+		print "Loop!"
 		try:
-			if ready:
-				fig.canvas.draw()
-				ready = False
+			fig.canvas.draw()
+			if newmsg:
+				process_image()
+				newmsg = False
 		except KeyboardInterrupt:
 			break
 
