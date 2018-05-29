@@ -26,17 +26,11 @@ bridge = CvBridge()
 
 first = True
 
-plt.ion()
-# plt.show(block=False)
-
-fig = plt.figure()
-
-ax1 = fig.add_subplot(111)
 
 im1 = 0
 
 def image_callback(msg):
-    global first, im1, im2
+    global first, im1, im2, fig
     print("Received an image!")
     try:
         # Convert your ROS Image message to OpenCV2
@@ -67,6 +61,10 @@ def image_callback(msg):
         # plt.title('Edge Image'), plt.xticks([]), plt.yticks([])
 
 def main():
+    global fig, ax1
+    plt.ion()
+    fig = plt.figure()
+    ax1 = fig.add_subplot(111)
     rospy.init_node('image_listener')
     # Define your image topic
     image_topic = "/head_camera/rgb/image_raw"
@@ -75,8 +73,12 @@ def main():
     # Spin until ctrl + c
     mng = plt.get_current_fig_manager()
     mng.resize(*mng.window.maxsize())
-    while True:
-        fig.canvas.draw()
+
+    while not rospy.is_shutdown():
+        try:
+            fig.canvas.draw()
+        except KeyboardInterrupt:
+            break
 
 if __name__ == '__main__':
     main()

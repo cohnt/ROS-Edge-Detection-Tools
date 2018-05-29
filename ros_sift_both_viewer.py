@@ -123,8 +123,11 @@ def main():
     # Spin until ctrl + c
     mng = plt.get_current_fig_manager()
     mng.resize(*mng.window.maxsize())
-    while True:
-        fig.canvas.draw()
+    while not rospy.is_shutdown():
+        try:
+            fig.canvas.draw()
+        except KeyboardInterrupt:
+            break
 
 if __name__ == '__main__':
     main()
