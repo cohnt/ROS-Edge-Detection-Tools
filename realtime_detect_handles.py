@@ -33,7 +33,6 @@ ready = False
 fig, ax = plt.subplots()
 ax.axis('off')
 imgObj = 0
-firstImage = True
 
 isHandleData = 0
 notHandleData = 0
@@ -52,7 +51,7 @@ db = 0
 bridge = CvBridge()
 
 def image_callback(msg):
-	global firstImage, im1, im2, new_img, imgObj, ready, fd, hog_image, hog_image_rescaled
+	global im1, im2, new_img, imgObj, ready, fd, hog_image, hog_image_rescaled
 	print "Received an image."
 	try:
 		# Convert your ROS Image message to OpenCV2
@@ -71,8 +70,7 @@ def image_callback(msg):
 
 		print "Time: %s" % (endTime-startTime)
 
-		if firstImage:
-			firstImage = False
+		if imgObj == 0:
 			imgObj = ax.imshow(hog_image_rescaled, cmap=plt.cm.gray)
 		elif not imageMode:
 			imgObj.set_data(hog_image_rescaled)
@@ -264,7 +262,7 @@ def main():
 
 	rospy.init_node('image_listener')
 	image_topic = "/head_camera/rgb/image_raw"
-	rospy.Subscriber(image_topic, Image, image_callback)
+	rospy.Subscriber(image_topic, Image, image_callback, queue_size=1)
 
 	while not rospy.is_shutdown():
 		plt.pause(0.1)
