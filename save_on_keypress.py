@@ -78,7 +78,7 @@ def main():
         while not rospy.is_shutdown():
             key = keyPoller.poll()
             if key == 'q':
-                print "Saved %d images." % imNum + 1
+                print "Saved %d images." % (imNum + 1)
                 rospy.signal_shutdown("Quit command received. Stopping...")
                 break
             elif key == 'r' or key == 's':
