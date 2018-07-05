@@ -44,7 +44,7 @@ learned = False
 imageMode = False
 
 clusterMaxDistance = 3
-clusterMinSamples = 3
+clusterMinSamples = 5
 
 db = 0
 
