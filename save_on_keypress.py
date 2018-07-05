@@ -9,7 +9,7 @@ import cv2
 # Instantiate CvBridge
 bridge = CvBridge()
 
-imNum = 0
+imNum = -1
 lastImNum = -1
 
 # Keylogger from StackOverflow
@@ -50,11 +50,20 @@ def image_callback(msg):
         print(e)
     else:
         # Save your OpenCV2 image as a jpeg 
-        print imNum
+        # print imNum
         if imNum != lastImNum:
-            cv2.imwrite('camera_image%s.jpeg' % imNum, cv2_img)
+            fname = 'camera_image%s.jpeg' % imNum
+            cv2.imwrite(fname, cv2_img)
+            print "Done! Filename %s" % fname
             lastImNum = imNum
+        else:
+            print ".",
+            sys.stdout.flush()
 
+def printHelp():
+    print "q: quit"
+    print "r/s: save an image"
+    print "h: print help"
 
 def main():
     global imNum
@@ -65,15 +74,19 @@ def main():
     rospy.Subscriber(image_topic, Image, image_callback)
     # Spin until ctrl + c
     with KeyPoller() as keyPoller:
+        printHelp()
         while not rospy.is_shutdown():
-            c = keyPoller.poll()
-            if c == 'q':
+            key = keyPoller.poll()
+            if key == 'q':
                 print "Saved %d images." % imNum
                 rospy.signal_shutdown("Quit command received. Stopping...")
                 break
-            elif c == 'r':
+            elif key == 'r' or key == 's':
                 imNum = imNum + 1
-                print "\tSaving an image."
+                print "\nSaving an image...",
+                sys.stdout.flush()
+            elif key == 'h':
+                printHelp()
 
 if __name__ == '__main__':
     main()
