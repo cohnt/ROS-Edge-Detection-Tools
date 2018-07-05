@@ -67,7 +67,7 @@ def printHelp():
 
 def main():
     global imNum
-    rospy.init_node('image_listener')
+    rospy.init_node('save_on_keypress')
     # Define your image topic
     image_topic = "/head_camera/rgb/image_raw"
     # Set up your subscriber and define its callback
@@ -78,7 +78,7 @@ def main():
         while not rospy.is_shutdown():
             key = keyPoller.poll()
             if key == 'q':
-                print "Saved %d images." % imNum
+                print "Saved %d images." % imNum + 1
                 rospy.signal_shutdown("Quit command received. Stopping...")
                 break
             elif key == 'r' or key == 's':
