@@ -15,6 +15,9 @@ from sklearn.cluster import DBSCAN
 
 import numpy as np
 
+import pickle
+import os, os.path
+
 # np.set_printoptions(threshold='nan')
 
 fname = "camera_image0.jpeg"
@@ -37,7 +40,7 @@ learned = False
 imageMode = False
 
 clusterMaxDistance = 3
-clusterMinSamples = 10
+clusterMinSamples = 3
 
 db = 0
 
@@ -118,6 +121,26 @@ def learn():
 
 	print "Done learning!"
 
+def saveModel():
+	global isHandleData, notHandleData
+	temp = [isHandleData, notHandleData]
+	if os.path.isfile("model.pickle"):
+		os.remove("model.pickle")
+	with open("model.pickle", "wb") as f:
+		pickle.dump(temp, f)
+
+def openModel():
+	global isHandleData, notHandleData, learned
+	if not os.path.isfile("model.pickle"):
+		return
+	with open("model.pickle", "rb") as f:
+		temp = pickle.load(f)
+		isHandleData = temp[0]
+		notHandleData = temp[1]
+		print np.shape(isHandleData)
+		print np.shape(notHandleData)
+
+
 def onkeypress(event):
 	global isHandleData, notHandleData, svc, learned, imNum, imageMode
 	# print event.key
@@ -142,6 +165,10 @@ def onkeypress(event):
 			predictImage()
 	elif event.key == "i": # Switch mode from HOG to image
 		imageMode = not imageMode
+	elif event.key == "s": # Save model
+		saveModel()
+	elif event.key == "o": # Open model
+		openModel()
 
 def loadImage():
 	global fd, fname, imNum, fig, ax, imgObj, firstImage, imageMode
@@ -169,7 +196,7 @@ def classify(cell_id):
 	global fd, svc
 
 	temp = fd[cell_id[0]:cell_id[0]+window_size[1],cell_id[1]:cell_id[1]+window_size[0],:,:,:]
-	# print np.shape(temp)
+	print np.shape(temp)
 	temp = np.reshape(temp, (-1))
 	temp = np.reshape(temp, (1, -1))
 
@@ -201,6 +228,9 @@ def predictImage():
 			else:
 				print ""
 	guesses = np.array(guesses)
+	if guesses.size == 0:
+		print "Found no handles"
+		return
 	db.fit(guesses)
 	labels = db.labels_
 	unique_labels = set(labels)
@@ -246,6 +276,8 @@ def main():
 	mng.resize(*mng.window.maxsize())
 
 	plt.rcParams["keymap.yscale"] = ""
+	plt.rcParams["keymap.save"] = ""
+	plt.rcParams["keymap.zoom"] = ""
 
 	plt.show()
 
