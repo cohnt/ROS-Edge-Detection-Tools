@@ -266,7 +266,7 @@ def predictImage():
 			patches.Circle(
 				(
 					(centroid[0, 1]*cell_size[0])+(0.5*cell_size[0]*window_size[0]),
-					(centroid[0, 0]*cell_size[1])+(cell_size[0]*window_size[0])-10
+					(centroid[0, 0]*cell_size[1])+(cell_size[0]*window_size[1])-10
 				),
 				2,
 				fill=False,
