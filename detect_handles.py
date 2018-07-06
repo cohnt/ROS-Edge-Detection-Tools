@@ -217,10 +217,12 @@ def predictImage():
 				print "Yes!"
 				guesses.append(cell_id)
 				ax.add_patch(
-					patches.Rectangle(
-						(j*cell_size[0]+(0.5*(window_size[0]*cell_size[0])), i*cell_size[1]+(0.5*(window_size[1]*cell_size[1]))),
-						2,
-						2,
+					patches.Circle(
+						(
+							j*cell_size[0]+(0.5*(window_size[0]*cell_size[0])),
+							i*cell_size[1]+(0.5*(window_size[1]*cell_size[1]))
+						),
+						1,
 						fill=False,
 						edgecolor="blue"
 					)
@@ -258,6 +260,17 @@ def predictImage():
 				window_size[1]*cell_size[1],
 				fill=False,
 				edgecolor="blue"
+			)
+		)
+		ax.add_patch(
+			patches.Circle(
+				(
+					(centroid[0, 1]*cell_size[0])+(0.5*cell_size[0]*window_size[0]),
+					(centroid[0, 0]*cell_size[1])+(cell_size[0]*window_size[0])-10
+				),
+				2,
+				fill=False,
+				edgecolor="green"
 			)
 		)
 
