@@ -2,3 +2,5 @@
 *.png
 *.jpg
 test.txt
+models/*
+training_dataset/*
