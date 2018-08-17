@@ -12,4 +12,4 @@ To save the annotated data, you can press `[s]`, which will create a file `model
 
 # Realtime Viewing
 
-Connect to the robot, and run `load_model_and_detect_realtime.py`. Make sure your `model.pickle` file is in the same directory.
+Connect to the robot, and run `load_model_and_detect_realtime.py`. Make sure your `model.pickle` file is in the same directory. You can press `[i]` to switch between displaying the HOG descriptors and the actual image.
