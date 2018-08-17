@@ -2,9 +2,7 @@
 
 import rospy
 import os
-import thread
 import pickle
-import signal
 from sensor_msgs.msg import Image
 from cv_bridge import CvBridge, CvBridgeError
 import cv2
@@ -32,7 +30,6 @@ cell_size = (8, 8) # x, y
 window_size = (16, 16) # x, y
 
 plt.ion()
-ready = True
 
 fig, ax = plt.subplots()
 ax.axis('off')
@@ -56,8 +53,6 @@ bridge = CvBridge()
 
 lastmsg = 0
 
-ready_lock = thread.allocate_lock()
-
 def get_image(image_topic):
 	msg = rospy.wait_for_message(image_topic, Image)
 	image_callback(msg)
@@ -69,14 +64,10 @@ def image_callback(msg):
 	# 	lastmsg = msg
 	# 	process_image()
 
-	global lastmsg, ready, ready_lock
-	with ready_lock:
-		ready = False
+	global lastmsg
 	print "Received an image."
 	lastmsg = msg
 	process_image()
-	with ready_lock:
-		ready = True
 
 def process_image():
 	# myTime = rospy.get_time()
@@ -85,7 +76,7 @@ def process_image():
 	# print "Message time: %s" % yourTime
 	# print "Elapsed: %s" % (myTime-yourTime)
 
-	global lastmsg, im1, im2, new_img, imgObj, ready, ready_lock, fd, hog_image, hog_image_rescaled
+	global lastmsg, im1, im2, new_img, imgObj, fd, hog_image, hog_image_rescaled
 
 	print "Processing an image"
 	msg = lastmsg
@@ -96,7 +87,6 @@ def process_image():
 		# print "Done!"
 	except CvBridgeError, e:
 		print(e)
-		ready = True
 	else:
 		# print "Processing... ",
 		startTime = time.time()
@@ -312,11 +302,7 @@ def main():
 		plt.pause(0.01)
 		try:
 			fig.canvas.draw()
-			temp_ready = 0
-			with ready_lock:
-				temp_ready = ready
-			if temp_ready:
-				thread.start_new_thread(get_image, (image_topic,))
+			get_image(image_topic)
 		except KeyboardInterrupt:
 			break
 
